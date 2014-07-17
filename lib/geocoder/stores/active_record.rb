@@ -134,8 +134,12 @@ module Geocoder::Store
         if using_sqlite?
           conditions = bounding_box_conditions
         else
-          min_radius = options.fetch(:min_radius, 0).to_f
-          conditions = [bounding_box_conditions + " AND (#{distance}) BETWEEN ? AND ?", min_radius, radius]
+          if options[:radius_column]
+            conditions = [bounding_box_conditions + " AND #{distance} <= #{options[:radius_column]}"]
+          else
+            min_radius = options.fetch(:min_radius, 0).to_f
+            conditions = [bounding_box_conditions + " AND (#{distance}) BETWEEN ? AND ?", min_radius, radius]
+          end
         end
         {
           :select => select_clause(options[:select],
